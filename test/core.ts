@@ -8,13 +8,26 @@ function wrapInObject<T>(value : T) : { myProperty : T } {
     };
 }
 
-function testGenericClone<T>(cloner : Cloner, typeName : string, valueToClone : T) : T {
+function testPropertiesThatShouldExist<T>(typeName : string, value : T, propertiesThatShouldExist : Array<keyof T>) : void {
+    for (const propertyName of propertiesThatShouldExist) {
+        assert.notStrictEqual(value[propertyName], undefined, `The cloned ${ typeName } should have a property "${ propertyName }"`);
+    }
+}
+
+function testPropertiesThatShouldNotExist<T>(typeName : string, value : T, propertiesThatShouldExist : Array<keyof T>) : void {
+    for (const propertyName of propertiesThatShouldExist) {
+        assert.strictEqual(value[propertyName], undefined, `The cloned ${ typeName } should not have a property "${ propertyName }"`);
+    }
+}
+
+function testGenericClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>) : T {
     const clonedValue = cloner(valueToClone);
     assert.notStrictEqual(clonedValue, valueToClone, `The cloned ${ typeName } should not reference the same object in memory`);
+    testPropertiesThatShouldExist(typeName, clonedValue, propertiesThatShouldExist);
     return clonedValue;
 }
 
-function testGenericPropertyClone<T>(cloner : Cloner, typeName : string, valueToClone : T) : T {
+function testGenericPropertyClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>) : T {
     const obj = wrapInObject(valueToClone);
 
     const clonedObjectValue = cloner(obj);
@@ -22,6 +35,7 @@ function testGenericPropertyClone<T>(cloner : Cloner, typeName : string, valueTo
     assert.notStrictEqual(clonedObjectValue.myProperty, undefined, `The cloned object should have a property called "myProperty"`);
     const clonedPropertyValue = clonedObjectValue.myProperty;
     assert.notStrictEqual(valueToClone, clonedPropertyValue, `The cloned ${ typeName } should not reference the same object in memory`);
+    testPropertiesThatShouldExist(typeName, clonedPropertyValue, propertiesThatShouldExist);
     return clonedPropertyValue;
 }
 
@@ -47,15 +61,19 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`Array`, function () {
             const typeName = `Array`;
+            const expectedProperties : Array<keyof Array<any>> = [
+                'concat',
+                'length'
+            ];
             const valueToClone = [{ myProperty: 1 }];
 
             it(`can deep copy an ${ typeName }`, function () {
-                const clonedValue = testGenericClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.notStrictEqual(clonedValue[0], valueToClone[0], `Array object values should not reference the same object in memory`);
             });
 
             it(`can deep copy an ${ typeName } contained in an object property`, function () {
-                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.strictEqual(clonedValue.length, valueToClone.length, `Cloned Arrays must keep the same length`);
                 assert.notStrictEqual(clonedValue[0], valueToClone[0], `Array object values should not reference the same object in memory`);
             });
@@ -71,6 +89,10 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`ArrayBuffer`, testSuiteOverrides.ArrayBuffer || function () {
             const typeName = `ArrayBuffer`;
+            const expectedProperties : Array<keyof ArrayBuffer> = [
+                'byteLength',
+                'slice'
+            ];
             const valueToClone = new ArrayBuffer(3);
             const originalDataView = new DataView(valueToClone);
             originalDataView.setInt8(0, 1);
@@ -78,7 +100,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             originalDataView.setInt8(2, 3);
 
             it(`can deep copy an ${ typeName }`, function () {
-                const clonedValue = testGenericClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.doesNotThrow(() => new DataView(clonedValue), `Cloned ArrayBuffers can be passed to the DataView constructor without throwing a TypeError`);
                 const cloneDataView = new DataView(clonedValue);
                 assert.strictEqual(originalDataView.byteLength, cloneDataView.byteLength, `Cloned ArrayBuffers must keep the same length`);
@@ -86,10 +108,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
 
             it(`can deep copy an ${ typeName } contained in an object property`, function () {
-                let clonedValue : ArrayBuffer;
-                assert.doesNotThrow(() => {
-                    clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
-                });
+                const clonedValue : ArrayBuffer = testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.doesNotThrow(() => new DataView(clonedValue), `Cloned ArrayBuffers can be passed to the DataView constructor without throwing a TypeError`);
                 const cloneDataView = new DataView(clonedValue!);
                 assert.strictEqual(originalDataView.byteLength, cloneDataView.byteLength, `Cloned ArrayBuffers must keep the same length`);
@@ -115,14 +134,20 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`Buffer`, function () {
             const typeName = `Buffer`;
+            const expectedProperties : Array<keyof Buffer> = [
+                'length',
+                'copy',
+                'BYTES_PER_ELEMENT'
+            ];
             const valueToClone = new Buffer(`Boom! 💥`, `utf-8`);
 
             it(`can deep copy a ${ typeName }`, function () {
-                testGenericClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone, expectedProperties);
+                assert.strictEqual(clonedValue.length, valueToClone.length, `Buffer length must remain the same`);
             });
 
             it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.strictEqual(clonedValue.length, valueToClone.length, `Buffer length must remain the same`);
             });
 
@@ -136,14 +161,19 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`Date`, function () {
             const typeName = `Date`;
+            const expectedProperties : Array<keyof Date> = [
+                "getDate",
+                "valueOf",
+                "setUTCDate"
+            ];
             const valueToClone = new Date(Date.UTC(2018, 1, 17));
 
             it(`can deep copy a ${ typeName }`, function () {
-                testGenericClone(cloner, typeName, valueToClone);
+                testGenericClone(cloner, typeName, valueToClone, expectedProperties);
             });
 
             it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                testGenericPropertyClone(cloner, typeName, valueToClone);
+                testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
             });
 
             it(`mutating a Date does not alter the clone`, function () {
@@ -219,14 +249,33 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`Object`, function () {
             const typeName = `Object`;
+            const expectedProperties : Array<keyof Object> = [
+                "constructor",
+                "hasOwnProperty",
+                "propertyIsEnumerable"
+            ];
             const valueToClone = { myProperty: 123 };
 
-            it(`can deep copy a ${ typeName }`, function () {
-                testGenericClone(cloner, typeName, valueToClone);
+            it(`can deep copy an Object`, function () {
+                testGenericClone<Object>(cloner, typeName, valueToClone, expectedProperties);
             });
 
-            it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                testGenericPropertyClone(cloner, typeName, valueToClone);
+            it(`can deep copy an Object contained in an object property`, function () {
+                testGenericPropertyClone<Object>(cloner, typeName, valueToClone, expectedProperties);
+            });
+
+            it(`can deep copy an Object that does not inherit from Object`, function () {
+                const valueToClone = Object.create(null);
+                valueToClone.myProperty = 123;
+                const clonedValue = testGenericClone<{ myProperty : number }>(cloner, typeName, valueToClone, ['myProperty']);
+                testPropertiesThatShouldNotExist<Object>(typeName, clonedValue, expectedProperties);
+            });
+
+            it(`can deep copy an Object that does not inherit from Object, contained in an object property`, function () {
+                const valueToClone = Object.create(null);
+                valueToClone.myProperty = 123;
+                const clonedValue = testGenericPropertyClone<{ myProperty : number }>(cloner, typeName, valueToClone, ['myProperty']);
+                testPropertiesThatShouldNotExist<Object>(typeName, clonedValue, expectedProperties);
             });
 
             it(`allows circular references`, function () {
@@ -251,15 +300,19 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`Set`, function () {
             const typeName = `Set`;
+            const expectedProperties : Array<keyof Set<any>> = [
+                "add",
+                "size"
+            ];
             const valueToClone = new Set([1, 2, 3]);
 
             it(`can deep copy a ${ typeName }`, function () {
-                const clonedValue = testGenericClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.strictEqual(valueToClone.size, clonedValue.size, `The Sets should have the same lengths`);
             });
 
             it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
                 assert.strictEqual(valueToClone.size, clonedValue.size, `The Sets should have the same lengths`);
             });
 
@@ -273,14 +326,19 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
 
         describe(`RegExp`, function () {
             const typeName = `RegExp`;
+            const expectedProperties : Array<keyof RegExp> = [
+                "compile",
+                "source",
+                "flags"
+            ];
             const valueToClone = new RegExp(`.*`, 'g');
 
             it(`can deep copy a ${ typeName }`, function () {
-                testGenericClone(cloner, typeName, valueToClone);
+                testGenericClone(cloner, typeName, valueToClone, expectedProperties);
             });
 
             it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                testGenericPropertyClone(cloner, typeName, valueToClone);
+                testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
             });
         });
 
@@ -297,18 +355,34 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                 Float64Array
             ];
 
+            type TypedArray = (
+                Int8Array
+                | Uint8Array
+                | Uint8ClampedArray
+                | Int16Array
+                | Uint16Array
+                | Int32Array
+                | Uint32Array
+                | Float32Array
+                | Float64Array
+            );
+
             for (const typeToTest of typesToTest) {
                 const typeToTestName = typeToTest.name;
                 describe(typeToTestName, function () {
+                    const expectedProperties : Array<keyof TypedArray> = [
+                        "byteLength",
+                        "copyWithin"
+                    ];
                     const valueToClone = new typeToTest([1, 2, 3]);
 
                     it(`can deep copy a ${ typeToTestName }`, function () {
-                        const clonedValue = testGenericClone(cloner, typeToTestName, valueToClone);
+                        const clonedValue = testGenericClone(cloner, typeToTestName, valueToClone, expectedProperties);
                         assert.strictEqual(clonedValue.length, valueToClone.length, `Cloned ${ typeToTestName } must keep the same length`);
                     });
 
                     it(`can deep copy a ${ typeToTestName } contained in an object property`, function () {
-                        const clonedValue = testGenericPropertyClone(cloner, typeToTestName, valueToClone);
+                        const clonedValue = testGenericPropertyClone(cloner, typeToTestName, valueToClone, expectedProperties);
                         assert.strictEqual(clonedValue.length, valueToClone.length, `Cloned ${ typeToTestName } must keep the same length`);
                     });
 
