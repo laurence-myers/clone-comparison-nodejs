@@ -327,6 +327,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
         describe(`RegExp`, function () {
             const typeName = `RegExp`;
             const expectedProperties : Array<keyof RegExp> = [
+                "global",
                 "compile",
                 "source",
                 "flags"
