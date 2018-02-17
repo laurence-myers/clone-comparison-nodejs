@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "allowJs": false,
+    "checkJs": false,
+    "declaration": false,
+    "sourceMap": true,
+    "outDir": "dist",
+    "noEmitOnError": true,
+    "newLine": "lf",
+
+    "strict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "skipLibCheck": true
+  },
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "test/data"
+  ]
+}
