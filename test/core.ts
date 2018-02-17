@@ -44,10 +44,9 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
     }
     const testSuiteOverrides : TestSuiteOverrides = cloneLibraryOptions.testSuiteOverrides || {};
     describe(libraryName, function () {
-        let typeName : string;
 
-        typeName = `Array`;
-        describe(typeName, function () {
+        describe(`Array`, function () {
+            const typeName = `Array`;
             const valueToClone = [{ myProperty: 1 }];
 
             it(`can deep copy an ${ typeName }`, function () {
@@ -70,8 +69,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `ArrayBuffer`;
-        describe(typeName, testSuiteOverrides.ArrayBuffer || function () {
+        describe(`ArrayBuffer`, testSuiteOverrides.ArrayBuffer || function () {
+            const typeName = `ArrayBuffer`;
             const valueToClone = new ArrayBuffer(3);
             const originalDataView = new DataView(valueToClone);
             originalDataView.setInt8(0, 1);
@@ -114,8 +113,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `Buffer`;
-        describe(typeName, function () {
+        describe(`Buffer`, function () {
+            const typeName = `Buffer`;
             const valueToClone = new Buffer(`Boom! 💥`, `utf-8`);
 
             it(`can deep copy a ${ typeName }`, function () {
@@ -135,8 +134,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `Date`;
-        describe(typeName, function () {
+        describe(`Date`, function () {
+            const typeName = `Date`;
             const valueToClone = new Date(Date.UTC(2018, 1, 17));
 
             it(`can deep copy a ${ typeName }`, function () {
@@ -155,8 +154,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `Map`;
-        describe(typeName, function () {
+        describe(`Map`, function () {
             it(`can deep copy a Map`, function () {
                 const map = new Map<string, string>();
                 map.set('key', 'value');
@@ -219,8 +217,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `Object`;
-        describe(typeName, function () {
+        describe(`Object`, function () {
+            const typeName = `Object`;
             const valueToClone = { myProperty: 123 };
 
             it(`can deep copy a ${ typeName }`, function () {
@@ -251,8 +249,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `Set`;
-        describe(typeName, function () {
+        describe(`Set`, function () {
+            const typeName = `Set`;
             const valueToClone = new Set([1, 2, 3]);
 
             it(`can deep copy a ${ typeName }`, function () {
@@ -273,8 +271,8 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
-        typeName = `RegExp`;
-        describe(typeName, function () {
+        describe(`RegExp`, function () {
+            const typeName = `RegExp`;
             const valueToClone = new RegExp(`.*`, 'g');
 
             it(`can deep copy a ${ typeName }`, function () {
