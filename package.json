@@ -21,6 +21,7 @@
     "clone": "2.1.1",
     "clone-deep": "2.0.1",
     "clone-extend": "0.1.2",
+    "component-clone": "0.2.3",
     "deep-clone": "3.0.2",
     "fast-deepclone": "1.0.0",
     "mocha": "4.0.1",

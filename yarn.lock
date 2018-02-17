@@ -114,6 +114,16 @@ commander@^2.12.1:
   version "2.14.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.14.1.tgz#2235123e37af8ca3c65df45b026dbd357b01b9aa"
 
+component-clone@0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/component-clone/-/component-clone-0.2.3.tgz#de640e1a00cb2f41f9fc4e488088e251dcf15468"
+  dependencies:
+    component-type "*"
+
+component-type@*:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/component-type/-/component-type-1.2.1.tgz#8a47901700238e4fc32269771230226f24b415a9"
+
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
