@@ -26,6 +26,7 @@
     "deep-copy": "1.4.2",
     "deepclone": "1.0.2",
     "deepcopy": "0.6.3",
+    "es6-deep-clone": "1.1.1",
     "extend": "3.0.1",
     "fast-clone": "1.4.2",
     "fast-deepclone": "1.0.0",

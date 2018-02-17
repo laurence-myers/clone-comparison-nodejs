@@ -166,6 +166,10 @@ diff@^3.2.0:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/diff/-/diff-3.4.0.tgz#b1d85507daf3964828de54b37d0d73ba67dda56c"
 
+es6-deep-clone@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/es6-deep-clone/-/es6-deep-clone-1.1.1.tgz#e4aa19dbc6dae2d608f0d65667f461d4fbbc9b8e"
+
 escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
