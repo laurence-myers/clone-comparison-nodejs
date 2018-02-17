@@ -291,10 +291,19 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                     child
                 };
                 child.parent = parent;
-                const clonedValue = cloner(parent);
-                assert.notStrictEqual(clonedValue, parent, `Parent and clone should not reference the same object in memory`);
-                assert.notStrictEqual(clonedValue.child, parent.child, `Child and clone's child should not reference the same object in memory`);
-                assert.strictEqual(clonedValue.child.parent, clonedValue, `The cloned circular reference should reference the same object in memory`);
+                let clonedValue : Parent;
+                try {
+                    clonedValue = cloner(parent);
+                } catch (err) {
+                    if (err instanceof RangeError) {
+                        assert.fail(`Circular references should not cause an infinite loop / "maximum call stack size exceeded" error`);
+                    } else {
+                        throw err;
+                    }
+                }
+                assert.notStrictEqual(clonedValue!, parent, `Parent and clone should not reference the same object in memory`);
+                assert.notStrictEqual(clonedValue!.child, parent.child, `Child and clone's child should not reference the same object in memory`);
+                assert.strictEqual(clonedValue!.child.parent, clonedValue!, `The cloned circular reference should reference the same object in memory`);
             });
         });
 
