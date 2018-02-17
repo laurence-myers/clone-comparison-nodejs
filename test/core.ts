@@ -185,28 +185,27 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
         });
 
         describe(`Map`, function () {
-            it(`can deep copy a Map`, function () {
-                const map = new Map<string, string>();
-                map.set('key', 'value');
+            const typeName = `Map`;
+            const expectedProperties : Array<keyof Map<any, any>> = [
+                "size",
+                "set",
+                "get",
+                "has"
+            ];
+            const valueToClone = new Map<string, string>([
+                ['key', 'value']
+            ]);
 
-                const copiedMap = cloner(map);
-                assert.notStrictEqual(map, copiedMap, `The cloned Map should not reference the same object in memory`);
-                assert.strictEqual(map.size, copiedMap.size, `The cloned Map should have the same size as the original Map`);
-                assert.strictEqual(map.get('key'), copiedMap.get('key'), `Both maps should hold the same key/value pairs`);
+            it(`can deep copy a Map`, function () {
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone, expectedProperties);
+                assert.strictEqual(clonedValue.size, valueToClone.size, `The cloned Map should have the same size as the original Map`);
+                assert.strictEqual(clonedValue.get('key'), valueToClone.get('key'), `Both maps should hold the same key/value pairs`);
             });
 
             it(`can deep copy a Map contained in an object property`, function () {
-                const map = new Map<string, string>();
-                map.set('key', 'value');
-                const obj = wrapInObject(map);
-
-                const copiedObj = cloner(obj);
-                assert.notStrictEqual(obj, copiedObj, `The cloned object should not reference the same object in memory`);
-                assert.notStrictEqual(copiedObj.myProperty, undefined, `The cloned object should have a property called "myProperty"`);
-                const copiedMap = copiedObj.myProperty;
-                assert.notStrictEqual(map, copiedMap, `Properties holding Maps should not reference the same object in memory`);
-                assert.strictEqual(map.size, copiedMap.size, `The cloned Map should have the same size as the original Map`);
-                assert.strictEqual(map.get('key'), copiedMap.get('key'), `Both maps should hold the same key/value pairs`);
+                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone, expectedProperties);
+                assert.strictEqual(clonedValue.size, valueToClone.size, `The cloned Map should have the same size as the original Map`);
+                assert.strictEqual(clonedValue.get('key'), valueToClone.get('key'), `Both maps should hold the same key/value pairs`);
             });
 
             it(`can deep copy a class that extends Map`, function () {
