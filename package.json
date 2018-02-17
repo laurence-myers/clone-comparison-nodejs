@@ -23,6 +23,7 @@
     "clone-extend": "0.1.2",
     "component-clone": "0.2.3",
     "deep-clone": "3.0.2",
+    "fast-clone": "1.4.2",
     "fast-deepclone": "1.0.0",
     "mocha": "4.0.1",
     "source-map-support": "0.5.3"

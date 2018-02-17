@@ -158,6 +158,10 @@ esutils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
 
+fast-clone@1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/fast-clone/-/fast-clone-1.4.2.tgz#2c067ec46b616f671aaac79feda7b99b893681e3"
+
 fast-deepclone@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fast-deepclone/-/fast-deepclone-1.0.0.tgz#3bea3cb1d926e8a94da4fb53982cee2b379d1bf8"
