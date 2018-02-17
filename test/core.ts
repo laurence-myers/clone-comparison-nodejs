@@ -50,12 +50,12 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
         describe(typeName, function () {
             const valueToClone = [{ myProperty: 1 }];
 
-            it(`can deep copy a ${ typeName }`, function () {
+            it(`can deep copy an ${ typeName }`, function () {
                 const clonedValue = testGenericClone(cloner, typeName, valueToClone);
                 assert.notStrictEqual(clonedValue[0], valueToClone[0], `Array object values should not reference the same object in memory`);
             });
 
-            it(`can deep copy a ${ typeName } contained in an object property`, function () {
+            it(`can deep copy an ${ typeName } contained in an object property`, function () {
                 const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
                 assert.strictEqual(clonedValue.length, valueToClone.length, `Cloned Arrays must keep the same length`);
                 assert.notStrictEqual(clonedValue[0], valueToClone[0], `Array object values should not reference the same object in memory`);
@@ -78,7 +78,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             originalDataView.setInt8(1, 2);
             originalDataView.setInt8(2, 3);
 
-            it(`can deep copy a ${ typeName }`, function () {
+            it(`can deep copy an ${ typeName }`, function () {
                 const clonedValue = testGenericClone(cloner, typeName, valueToClone);
                 assert.doesNotThrow(() => new DataView(clonedValue), `Cloned ArrayBuffers can be passed to the DataView constructor without throwing a TypeError`);
                 const cloneDataView = new DataView(clonedValue);
@@ -86,7 +86,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                 assert.strictEqual(originalDataView.getInt8(0), originalDataView.getInt8(0), `Cloned ArrayBuffers values must remain the same`);
             });
 
-            it(`can deep copy a ${ typeName } contained in an object property`, function () {
+            it(`can deep copy an ${ typeName } contained in an object property`, function () {
                 let clonedValue : ArrayBuffer;
                 assert.doesNotThrow(() => {
                     clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
@@ -96,14 +96,22 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                 assert.strictEqual(originalDataView.byteLength, cloneDataView.byteLength, `Cloned ArrayBuffers must keep the same length`);
                 assert.strictEqual(originalDataView.getInt8(0), originalDataView.getInt8(0), `Cloned ArrayBuffers values must remain the same`);
             });
-            //
-            // it(`mutating an Array does not alter the clone`, function () {
-            //     const originalValue = [123];
-            //     const clonedValue = cloner(wrapInObject(originalValue)).myProperty;
-            //     originalValue.push(456);
-            //     assert.notStrictEqual(clonedValue.length, originalValue.length, `Mutated Arrays must have different lengths`);
-            //     assert.notDeepEqual(originalValue, clonedValue, `Mutated Arrays must have different contents`);
-            // });
+
+            it(`mutating an ArrayBuffer does not alter the clone`, function () {
+                const originalValue = new ArrayBuffer(3);
+                const originalDataView = new DataView(valueToClone);
+                originalDataView.setInt8(0, 1);
+                originalDataView.setInt8(1, 2);
+                originalDataView.setInt8(2, 3);
+                let clonedValue : ArrayBuffer;
+                assert.doesNotThrow(() => {
+                    clonedValue = cloner(wrapInObject(originalValue)).myProperty;
+                });
+                assert.doesNotThrow(() => new DataView(clonedValue), `Cloned ArrayBuffers can be passed to the DataView constructor without throwing a TypeError`);
+                const cloneDataView = new DataView(clonedValue!);
+                originalDataView.setInt8(0, 10);
+                assert.notDeepEqual(originalDataView.getInt8(0), cloneDataView.getInt8(0), `Mutated ArrayBuffers must have different contents`);
+            });
         });
 
         typeName = `Buffer`;
@@ -248,11 +256,13 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             const valueToClone = new Set([1, 2, 3]);
 
             it(`can deep copy a ${ typeName }`, function () {
-                testGenericClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericClone(cloner, typeName, valueToClone);
+                assert.strictEqual(valueToClone.size, clonedValue.size, `The Sets should have the same lengths`);
             });
 
             it(`can deep copy a ${ typeName } contained in an object property`, function () {
-                testGenericPropertyClone(cloner, typeName, valueToClone);
+                const clonedValue = testGenericPropertyClone(cloner, typeName, valueToClone);
+                assert.strictEqual(valueToClone.size, clonedValue.size, `The Sets should have the same lengths`);
             });
 
             it(`mutating a Set does not alter the clone`, function () {
