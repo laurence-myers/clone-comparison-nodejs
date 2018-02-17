@@ -304,6 +304,40 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                 assert.notStrictEqual(clonedValue!.child, parent.child, `Child and clone's child should not reference the same object in memory`);
                 assert.strictEqual(clonedValue!.child.parent, clonedValue!, `The cloned circular reference should reference the same object in memory`);
             });
+
+            it(`class inheritance preserves properties in the inheritance chain`, function () {
+                class GrandparentClass {
+                    propertyOnGrandparent = 123;
+                }
+                class ParentClass extends GrandparentClass {
+                    propertyOnParent = 456;
+                }
+                class ChildClass extends ParentClass {
+                }
+
+                const valueToClone = new ChildClass();
+                const clonedValue = cloner(wrapInObject(valueToClone)).myProperty;
+                assert.notStrictEqual(valueToClone.propertyOnParent, undefined, `The original instance should have a property from ParentClass`);
+                assert.notStrictEqual(valueToClone.propertyOnGrandparent, undefined, `The original instance should have a property from GrandparentClass`);
+                assert.notStrictEqual(clonedValue.propertyOnParent, undefined, `The cloned instance should have a property from ParentClass`);
+                assert.notStrictEqual(clonedValue.propertyOnGrandparent, undefined, `The cloned instance should have a property from GrandparentClass`);
+            });
+
+            it(`class inheritance works with "instanceof"`, function () {
+                class GrandparentClass {
+                }
+                class ParentClass extends GrandparentClass {
+                }
+                class ChildClass extends ParentClass {
+                }
+
+                const valueToClone = new ChildClass();
+                const clonedValue = cloner(wrapInObject(valueToClone)).myProperty;
+                assert.ok(valueToClone instanceof ParentClass, `The original instance can be identified as inheriting from ParentClass using "instanceof"`);
+                assert.ok(valueToClone instanceof GrandparentClass, `The original instance can be identified as inheriting from GrandparentClass using "instanceof"`);
+                assert.ok(clonedValue instanceof ParentClass, `The cloned instance can be identified as inheriting from ParentClass using "instanceof"`);
+                assert.ok(clonedValue instanceof GrandparentClass, `The cloned instance can be identified as inheriting from GrandparentClass using "instanceof"`);
+            });
         });
 
         describe(`Set`, function () {
