@@ -88,6 +88,10 @@ clone-deep@2.0.1:
     kind-of "^6.0.0"
     shallow-clone "^2.0.0"
 
+clone-extend@0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/clone-extend/-/clone-extend-0.1.2.tgz#7e8f561887ff3bf2035025d16781da5fbcf193bc"
+
 clone@2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.1.tgz#d217d1e961118e3ac9a4b8bba3285553bf647cdb"
