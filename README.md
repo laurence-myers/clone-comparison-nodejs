@@ -61,4 +61,5 @@ It looks like fast-deepclone could be a good base to work on.
   - Symbol
   - WeakMap
   - WeakSet
+  - Data types implemented in Node.js native code extensions (like fs.Stats)
 - Test cloning Object, Number, and String instances, and make sure they do not get converted to primitives.
