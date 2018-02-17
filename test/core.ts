@@ -211,6 +211,38 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
             });
         });
 
+        typeName = `Object`;
+        describe(typeName, function () {
+            const valueToClone = { myProperty: 123 };
+
+            it(`can deep copy a ${ typeName }`, function () {
+                testGenericClone(cloner, typeName, valueToClone);
+            });
+
+            it(`can deep copy a ${ typeName } contained in an object property`, function () {
+                testGenericPropertyClone(cloner, typeName, valueToClone);
+            });
+
+            it(`allows circular references`, function () {
+                interface Parent {
+                    child : Child;
+                }
+                interface Child {
+                    parent? : Parent;
+                }
+
+                const child : Child = {};
+                const parent : Parent = {
+                    child
+                };
+                child.parent = parent;
+                const clonedValue = cloner(parent);
+                assert.notStrictEqual(clonedValue, parent, `Parent and clone should not reference the same object in memory`);
+                assert.notStrictEqual(clonedValue.child, parent.child, `Child and clone's child should not reference the same object in memory`);
+                assert.strictEqual(clonedValue.child.parent, clonedValue, `The cloned circular reference should reference the same object in memory`);
+            });
+        });
+
         typeName = `Set`;
         describe(typeName, function () {
             const valueToClone = new Set([1, 2, 3]);
