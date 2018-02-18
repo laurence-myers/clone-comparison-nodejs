@@ -19,6 +19,7 @@ export type ComparisonTest = HasDescription & (ComparisonTestPass | ComparisonTe
 
 export interface ComparisonSuite {
     description : string;
+    allPassing : boolean;
     tests : ComparisonTest[];
 }
 
@@ -46,23 +47,23 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 background: white;
                 font-family: sans-serif;
             }
-            .summary-table {
+            .table {
                 margin-left: auto;
                 margin-right: auto;
                 border: 3px solid #ccc;
                 /*border-collapse: collapse;*/
                 border-spacing: 0;
                 border-radius: 4px;
+                background: #fff;
             }
-            .summary-table thead {
-                background: #888;
-                color: #fff;
+            .table th {
+                background: #ccc;
             }
-            .summary-table thead th {
+            .table th {
                 border-bottom: 1px solid #ccc;
                 padding: 0.5em;
             }
-            .summary-table tr:nth-child(even) {
+            .table tr:nth-child(even) {
                 background: #EEE;
             }
             .summary-table tbody tr {
@@ -71,12 +72,12 @@ export function comparisonReport(entries : ComparisonEntry[]) {
             .summary-table tbody tr:hover {
                 text-decoration: underline;
             }
-            .summary-table td {
+            .table td {
                 padding: 0.3em;
                 -moz-user-select: none;
                 user-select: none;
             }
-            .summary-table th + th, .summary-table td + td {
+            .table th + th, .table td + td {
                 border-left: 1px solid #ccc;
             }
             .summary-table tr.best-lib {
@@ -88,37 +89,67 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 padding: 0.2em;
             }
 
-            .type-suite, .test-result {
-                border: 2px solid #ccc;
-            }
-
-            .lib-results {
-                border: 2px solid #ccc;
-                background-color: #eee;
-                /*display: none;*/
-            }
-            .lib-results .lib-name {
-                cursor: pointer;
+            .lib-name {
+                text-align: center;
             }
 
             .type-suite {
                 background-color: #FFF;
             }
 
-            .test-suite-results-table {
+            .lib-suite-results-table {
                 width: 100%;
             }
 
-            .test-suite-results-table td.test-status {
-                width: 20%;
+            .lib-suite-results-table tbody th {
+                padding: 0.5em;
             }
 
-            .test-suite-results-table td.test-description {
+            .lib-suite-results-table .test-suite-header.suite-result-pass .test-status {
+                color: white;
+                background-color: #08d908;
+            }
+
+            .lib-suite-results-table .test-suite-header.suite-result-pass .test-suite-name {
+                background-color: #bae0b9;
+            }
+
+            .lib-suite-results-table .test-suite-header.suite-result-fail .test-status {
+                color: white;
+                background-color: #dc0000;
+            }
+
+            .lib-suite-results-table .test-suite-header.suite-result-fail .test-suite-name {
+                background-color: #ddb1b1;
+            }
+
+            .lib-suite-results-table tr.test-result.test-result-pass {
+                color: green;
+            }
+
+            .lib-suite-results-table tr.test-result.test-result-pass .test-status {
+                color: #1fcc1f;
+            }
+
+            .lib-suite-results-table tr.test-result.test-result-fail {
+                color: darkred;
+            }
+
+            .lib-suite-results-table tr.test-result.test-result-fail .test-status {
+                color: crimson;
+            }
+
+            .lib-suite-results-table td.test-status {
+                width: 10%;
+                text-align: center;
+            }
+
+            .lib-suite-results-table td.test-description {
                 width: 50%;
             }
 
-            .test-suite-results-table td.test-error-message {
-                width: 30%;
+            .lib-suite-results-table td.test-error-message {
+                width: 40%;
                 white-space: pre-line;
             }
 
@@ -148,8 +179,8 @@ export function comparisonReport(entries : ComparisonEntry[]) {
         </script>
     </head>
     <body>
-        <div class="summary-table-container">
-            <table class="summary-table">
+        <div>
+            <table class="table summary-table">
                 <thead>
                     <tr>
                         <th>Package</th>
@@ -172,22 +203,23 @@ export function comparisonReport(entries : ComparisonEntry[]) {
             <div id="lib-results-${ entry.libName }" class="lib-results hidden">
                 <h1 class="lib-name">${ he.encode(entry.libName) }: ${ entry.totalPassing } / ${ entry.totalAttempted }</h1>
                 <div class="lib-suite">
-                ${ mmap(entry.suites, (suite) => outdent`
-                    <div id="${ entry.libName }-type-suite" class="type-suite">
-                        <h2>${ he.encode(suite.description) }</h2>
-                        <table class="test-suite-results-table">
-                            <tbody>
-                                ${ mmap(suite.tests, (test) => outdent`
-                                    <tr class="test-result">
-                                        <td class="test-status">${ he.encode(test.pass ? '✓ Pass' : '✘ Fail') }</td>
-                                        <td class="test-description">${ he.encode(test.description) }</td>
-                                        <td class="test-error-message">${ !test.pass ? he.encode(test.message) : '' }</td>
-                                    </tr>
-                                `) }
-                            </tbody>
-                        </table>
-                    </div>
-                `) }
+                <table class="table lib-suite-results-table">
+                    ${ mmap(entry.suites, (suite) => suite.tests.length > 0 ? outdent`
+                        <tbody>
+                            <tr class="test-suite-header ${ suite.allPassing ? 'suite-result-pass' : 'suite-result-fail' }">
+                                <th class="test-status">${ he.encode(suite.allPassing ? '✔' : '✘') }</th>
+                                <th colspan="2" class="test-suite-name">${ he.encode(suite.description) }</th>
+                            </tr>
+                            ${ mmap(suite.tests, (test) => outdent`
+                                <tr class="test-result ${ test.pass ? 'test-result-pass' : 'test-result-fail' }">
+                                    <td class="test-status">${ he.encode(test.pass ? '✔' : '✘') }</td>
+                                    <td class="test-description">${ he.encode(test.description) }</td>
+                                    <td class="test-error-message">${ !test.pass ? he.encode(test.message) : '' }</td>
+                                </tr>
+                            `) }
+                        </tbody>
+                    ` : '') }
+                </table>
                 </div>
             </div>
         `) }

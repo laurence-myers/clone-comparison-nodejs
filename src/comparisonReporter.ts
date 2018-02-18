@@ -52,7 +52,8 @@ class ComparisonReporter extends mocha.reporters.Base {
         } else if (this.suiteLevel > 2) {
             this.currentComparisonEntry.suites.push({
                 description: suite.title,
-                tests: []
+                tests: [],
+                allPassing: true
             });
         }
     }
@@ -86,6 +87,7 @@ class ComparisonReporter extends mocha.reporters.Base {
         // console.log('fail: %s -- error: %s', test.fullTitle(), err.message);
         const suite = last(this.currentComparisonEntry.suites);
         if (suite) {
+            suite.allPassing = false;
             suite.tests.push({
                 description: test.title,
                 pass: false,
