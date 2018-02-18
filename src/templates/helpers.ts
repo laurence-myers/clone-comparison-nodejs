@@ -14,7 +14,7 @@ export function exists(obj : any, body : () => string, elseBody? : () => string)
     return iff(!isNullOrUndefined(obj), body, elseBody);
 }
 
-export function mmap<T>(list : T[], cb : (entry : T) => string) {
+export function mmap<T>(list : T[], cb : (entry : T, index : number) => string) {
     return list.map(cb).join('');
 }
 

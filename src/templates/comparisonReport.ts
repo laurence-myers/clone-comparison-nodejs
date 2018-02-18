@@ -1,6 +1,7 @@
 import outdent from "outdent";
 import {mmap} from "./helpers";
 import he = require("he");
+import {DefaultMap} from "../core";
 
 export interface HasDescription {
     description : string;
@@ -30,12 +31,66 @@ export interface ComparisonEntry {
     suites : ComparisonSuite[];
 }
 
+interface FeatureGroup {
+    name : string;
+    features : string[];
+}
+
+interface FeatureLib {
+    name : string;
+    featuresSupported : boolean[];
+}
+
+export interface FeatureComparison {
+    featureGroups : FeatureGroup[];
+    libs : FeatureLib[];
+}
+
+function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry[]) : FeatureComparison {
+    const groups = new DefaultMap<string, FeatureGroup>((key) => ({
+        name: key,
+        features: []
+    }));
+
+    const libs = [];
+    const allFeatures : string[] = [];
+    for (const entry of entries) {
+        const libName = entry.libName;
+        const featuresSupported : boolean[] = [];
+        for (const suite of entry.suites) {
+            const group = groups.get(suite.description);
+            for (const test of suite.tests) {
+                const fullDescription = `${ suite.description } - ${ test.description }`;
+                if (group.features.indexOf(test.description) === -1) {
+                    group.features.push(test.description);
+                    allFeatures.push(fullDescription);
+                }
+                featuresSupported[allFeatures.indexOf(fullDescription)] = test.pass;
+            }
+        }
+        for (let i = 0; i < featuresSupported.length; i++) {
+            if (featuresSupported[i] === undefined) {
+                featuresSupported[i] = false;
+            }
+        }
+        libs.push({
+            name : libName,
+            featuresSupported
+        });
+    }
+    return {
+        featureGroups: Array.from(groups.values()),
+        libs
+    };
+}
+
 export function comparisonReport(entries : ComparisonEntry[]) {
     if (entries.length === 0) {
         throw new Error(`Ehhh?! Nothing to report on!`);
     }
     const maxPassing = entries.reduce((prev, curr) => curr.totalPassing > prev ? curr.totalPassing : prev, 0);
     const bestLibs = entries.filter((value) => value.totalPassing === maxPassing);
+    const featureComparison = convertLibraryComparisonsToFeatureComparisons(entries);
 
     // language=HTML
     return outdent`
@@ -46,6 +101,12 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 color: black;
                 background: white;
                 font-family: sans-serif;
+            }
+            * {
+                font-size: 10pt;
+            }
+            h1 {
+                font-size: 1.2em;
             }
             .table {
                 margin-left: auto;
@@ -152,6 +213,18 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 width: 40%;
                 white-space: pre-line;
             }
+            
+            .feature-table thead {
+                font-size: 0.8em;
+            }
+            
+            .feature-table .test-status.test-status-pass {
+                color: #1fcc1f;
+            }
+            
+            .feature-table .test-status.test-status-fail {
+                color: crimson;
+            }
 
             .hidden {
                 display: none;
@@ -179,6 +252,7 @@ export function comparisonReport(entries : ComparisonEntry[]) {
         </script>
     </head>
     <body>
+        
         <div>
             <table class="table summary-table">
                 <thead>
@@ -199,6 +273,38 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 </tbody>
             </table>
         </div>
+        
+        <div style="margin-top: 1em;">
+            <table class="table feature-table">
+                <thead>
+                    <tr>
+                        <th style="background: #CCC; border-bottom: none;"></th>
+                        ${ mmap(featureComparison.featureGroups, (featureGroup) => featureGroup.features.length ? outdent`
+                        <th colspan="${ featureGroup.features.length }" style="text-align: left; border-left: 2px solid #DDD;">${ he.encode(featureGroup.name) }</th>
+                        ` : '') }
+                    </tr>
+                    <tr>
+                        <th style="background: #CCC;"></th>
+                        ${ mmap(featureComparison.featureGroups, (featureGroup) =>
+                            mmap(featureGroup.features, (feature, i) => outdent`
+                                <th style="background: #EEE; ${ i === 0 ? `border-left: 2px solid #DDD;` : '' }">${ he.encode(feature) }</th>
+                            `)
+                        ) }
+                    </tr>
+                </thead>
+                <tbody>
+                    ${ mmap(featureComparison.libs, (lib) => outdent`
+                    <tr>
+                        <td>${ he.encode(lib.name) }</td>
+                        ${ mmap(lib.featuresSupported, (pass) => outdent`
+                            <td class="test-status ${ pass ? 'test-status-pass' : 'test-status-fail' }">${ he.encode(pass ? '✔' : '✘') }</td>
+                        `) }
+                    </tr>                        
+                    `) }
+                </tbody>
+            </table>
+        </div>
+        
         ${ mmap(entries, (entry) => outdent`
             <div id="lib-results-${ entry.libName }" class="lib-results hidden">
                 <h1 class="lib-name">${ he.encode(entry.libName) }: ${ entry.totalPassing } / ${ entry.totalAttempted }</h1>
