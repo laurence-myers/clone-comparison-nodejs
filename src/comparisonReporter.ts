@@ -4,6 +4,9 @@ import ITest = Mocha.ITest;
 import ISuite = Mocha.ISuite;
 import {ComparisonEntry, comparisonReport} from "./templates/comparisonReport";
 import {last} from "./core";
+import {mkdirsSync} from "fs-extra";
+import {writeFileSync} from "fs";
+import * as path from "path";
 
 type TestRunner = Mocha.IRunner & EventEmitter;
 
@@ -54,10 +57,10 @@ class ComparisonReporter extends mocha.reporters.Base {
         }
     }
 
-    onSuiteEnd(_suite : ISuite) {
+    onSuiteEnd(suite : ISuite) {
         this.suiteLevel--;
         if (this.suiteLevel === 1) {
-            // console.log(`${ suite.fullTitle() } results: ${ this.passes }/${ this.passes + this.failures }`);
+            console.log(`${ suite.fullTitle() } results: ${ this.passes }/${ this.passes + this.failures }`);
             this.currentComparisonEntry.totalPassing = this.passes;
             this.currentComparisonEntry.totalAttempted = this.passes + this.failures;
             this.passes = 0;
@@ -92,7 +95,11 @@ class ComparisonReporter extends mocha.reporters.Base {
     }
 
     onEnd() {
-        console.log(this.generateHtml());
+        const outDir = 'docs';
+        const outFile = 'report.html';
+        const html = this.generateHtml();
+        mkdirsSync(outDir);
+        writeFileSync(path.join(outDir, outFile), html, 'utf-8');
         // console.log('end');
         process.exitCode = this.failures;
     }

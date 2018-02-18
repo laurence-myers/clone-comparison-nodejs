@@ -31,6 +31,7 @@
     "extend": "3.0.1",
     "fast-clone": "1.4.2",
     "fast-deepclone": "1.0.0",
+    "fs-extra": "5.0.0",
     "he": "1.1.1",
     "lodash.clonedeep": "4.5.0",
     "mocha": "4.0.1",
@@ -41,6 +42,7 @@
     "utils-copy": "1.1.1"
   },
   "devDependencies": {
+    "@types/fs-extra": "5.0.0",
     "@types/he": "0.5.29",
     "rimraf": "2.6.2",
     "tslint": "5.9.1",
