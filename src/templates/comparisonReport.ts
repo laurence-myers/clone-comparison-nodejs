@@ -229,15 +229,39 @@ export function comparisonReport(entries : ComparisonEntry[]) {
             .hidden {
                 display: none;
             }
+            
+            #section-navigator-container {
+                margin: 2em;
+                text-align: center;
+            }
+            
+            #section-navigator {
+                margin-left: auto;
+                margin-right: auto;
+                padding: 0.5em;
+                border: 3px solid #CCC;
+                border-radius: 4px;
+            }
+            
         </style>
         <script>
+            function hide(element) {
+                if (element && !element.classList.contains('hidden')) {
+                    element.classList.add('hidden');
+                }
+            }
+            
+            function show(element) {
+                if (element && element.classList.contains('hidden')) {
+                    element.classList.remove('hidden');
+                }
+            }
+        
             function collapseAllLibResults() {
                 var allSuites = document.getElementsByClassName('lib-results');
                 for (var i = 0; i < allSuites.length; i++) {
                     var suite = allSuites[i];
-                    if (!suite.classList.contains('hidden')) {
-                        suite.classList.add('hidden');
-                    }
+                    hide(suite);
                 }
             }
 
@@ -246,14 +270,38 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 var isHidden = suiteToShow.classList.contains('hidden');
                 collapseAllLibResults();
                 if (isHidden) {
-                    suiteToShow.classList.remove('hidden');
+                    show(suiteToShow);
                 }
+            }
+            
+            var sectionIds = ['section-feature-table', 'section-test-results'];
+            function showSection(sectionIdToShow) {
+                for (var i = 0; i < sectionIds.length; i++) {
+                    var section = document.getElementById(sectionIds[i]);
+                    if (section.id === sectionIdToShow) {
+                        show(section);
+                    } else {
+                        hide(section);
+                    }
+                }
+            }
+            
+            function showTestResults(libName) {
+                toggleContents(libName);
+                showSection('section-test-results');
             }
         </script>
     </head>
     <body>
-        
-        <div>
+        <div id="section-navigator-container">
+            <span id="section-navigator">
+                <a href="#section-feature-table" onclick="showSection('section-feature-table')">Feature Table</a>
+                <span>|</span>
+                <a href="#section-test-results"  onclick="showSection('section-test-results')">Test Results</a>
+            </span>
+        </div>
+    
+        <div id="section-summary-table">
             <table class="table summary-table">
                 <thead>
                     <tr>
@@ -264,7 +312,7 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 </thead>
                 <tbody>
                     ${ mmap(entries, (entry) => outdent`
-                        <tr class="${ bestLibs.indexOf(entry) > -1 ? 'best-lib' : '' }" onclick="toggleContents('${ entry.libName }')">
+                        <tr class="${ bestLibs.indexOf(entry) > -1 ? 'best-lib' : '' }" onclick="showTestResults('${ entry.libName }')">
                             <td>${ he.encode(entry.libName) }</td>
                             <td>${ entry.totalPassing }</td>
                             <td>${ entry.totalAttempted }</td>
@@ -273,62 +321,66 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 </tbody>
             </table>
         </div>
-        
-        <div style="margin-top: 1em;">
-            <table class="table feature-table">
-                <thead>
-                    <tr>
-                        <th style="background: #CCC; border-bottom: none;"></th>
-                        ${ mmap(featureComparison.featureGroups, (featureGroup) => featureGroup.features.length ? outdent`
-                        <th colspan="${ featureGroup.features.length }" style="text-align: left; border-left: 2px solid #DDD;">${ he.encode(featureGroup.name) }</th>
-                        ` : '') }
-                    </tr>
-                    <tr>
-                        <th style="background: #CCC;"></th>
-                        ${ mmap(featureComparison.featureGroups, (featureGroup) =>
-                            mmap(featureGroup.features, (feature, i) => outdent`
-                                <th style="background: #EEE; ${ i === 0 ? `border-left: 2px solid #DDD;` : '' }">${ he.encode(feature) }</th>
-                            `)
-                        ) }
-                    </tr>
-                </thead>
-                <tbody>
-                    ${ mmap(featureComparison.libs, (lib) => outdent`
-                    <tr>
-                        <td>${ he.encode(lib.name) }</td>
-                        ${ mmap(lib.featuresSupported, (pass) => outdent`
-                            <td class="test-status ${ pass ? 'test-status-pass' : 'test-status-fail' }">${ he.encode(pass ? '✔' : '✘') }</td>
-                        `) }
-                    </tr>                        
-                    `) }
-                </tbody>
-            </table>
-        </div>
-        
-        ${ mmap(entries, (entry) => outdent`
-            <div id="lib-results-${ entry.libName }" class="lib-results hidden">
-                <h1 class="lib-name">${ he.encode(entry.libName) }: ${ entry.totalPassing } / ${ entry.totalAttempted }</h1>
-                <div class="lib-suite">
-                <table class="table lib-suite-results-table">
-                    ${ mmap(entry.suites, (suite) => suite.tests.length > 0 ? outdent`
-                        <tbody>
-                            <tr class="test-suite-header ${ suite.allPassing ? 'suite-result-pass' : 'suite-result-fail' }">
-                                <th class="test-status">${ he.encode(suite.allPassing ? '✔' : '✘') }</th>
-                                <th colspan="2" class="test-suite-name">${ he.encode(suite.description) }</th>
-                            </tr>
-                            ${ mmap(suite.tests, (test) => outdent`
-                                <tr class="test-result ${ test.pass ? 'test-result-pass' : 'test-result-fail' }">
-                                    <td class="test-status">${ he.encode(test.pass ? '✔' : '✘') }</td>
-                                    <td class="test-description">${ he.encode(test.description) }</td>
-                                    <td class="test-error-message">${ !test.pass ? he.encode(test.message) : '' }</td>
-                                </tr>
+    
+        <div id="section-feature-table">
+            <div style="margin-top: 1em;">
+                <table class="table feature-table">
+                    <thead>
+                        <tr>
+                            <th style="background: #CCC; border-bottom: none;"></th>
+                            ${ mmap(featureComparison.featureGroups, (featureGroup) => featureGroup.features.length ? outdent`
+                            <th colspan="${ featureGroup.features.length }" style="text-align: left; border-left: 2px solid #DDD;">${ he.encode(featureGroup.name) }</th>
+                            ` : '') }
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC;"></th>
+                            ${ mmap(featureComparison.featureGroups, (featureGroup) =>
+                                mmap(featureGroup.features, (feature, i) => outdent`
+                                    <th style="background: #EEE; ${ i === 0 ? `border-left: 2px solid #DDD;` : '' }">${ he.encode(feature) }</th>
+                                `)
+                            ) }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ mmap(featureComparison.libs, (lib) => outdent`
+                        <tr>
+                            <td>${ he.encode(lib.name) }</td>
+                            ${ mmap(lib.featuresSupported, (pass) => outdent`
+                                <td class="test-status ${ pass ? 'test-status-pass' : 'test-status-fail' }">${ he.encode(pass ? '✔' : '✘') }</td>
                             `) }
-                        </tbody>
-                    ` : '') }
+                        </tr>                        
+                        `) }
+                    </tbody>
                 </table>
-                </div>
             </div>
-        `) }
+        </div>
+    
+        <div id="section-test-results">
+            ${ mmap(entries, (entry) => outdent`
+                <div id="lib-results-${ entry.libName }" class="lib-results hidden">
+                    <h1 class="lib-name">${ he.encode(entry.libName) }: ${ entry.totalPassing } / ${ entry.totalAttempted }</h1>
+                    <div class="lib-suite">
+                    <table class="table lib-suite-results-table">
+                        ${ mmap(entry.suites, (suite) => suite.tests.length > 0 ? outdent`
+                            <tbody>
+                                <tr class="test-suite-header ${ suite.allPassing ? 'suite-result-pass' : 'suite-result-fail' }">
+                                    <th class="test-status">${ he.encode(suite.allPassing ? '✔' : '✘') }</th>
+                                    <th colspan="2" class="test-suite-name">${ he.encode(suite.description) }</th>
+                                </tr>
+                                ${ mmap(suite.tests, (test) => outdent`
+                                    <tr class="test-result ${ test.pass ? 'test-result-pass' : 'test-result-fail' }">
+                                        <td class="test-status">${ he.encode(test.pass ? '✔' : '✘') }</td>
+                                        <td class="test-description">${ he.encode(test.description) }</td>
+                                        <td class="test-error-message">${ !test.pass ? he.encode(test.message) : '' }</td>
+                                    </tr>
+                                `) }
+                            </tbody>
+                        ` : '') }
+                    </table>
+                    </div>
+                </div>
+            `) }
+        </div>
     </body>
 </html>`;
 }
