@@ -18,7 +18,7 @@ Note, that if speed is a priority, you can check out [some benchmarks](https://g
 
 The test results are available online here:
 
-[https://laurence-myers.github.io/clone-comparison-nodejs](https://laurence-myers.github.io/clone-comparison-nodejs)
+[https://laurence-myers.github.io/clone-comparison-nodejs/index.html](https://laurence-myers.github.io/clone-comparison-nodejs/index.html)
 
 ## Libraries tested
 
