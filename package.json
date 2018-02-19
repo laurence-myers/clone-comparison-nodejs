@@ -14,6 +14,7 @@
   "author": "Laurence Dougal Myers",
   "repository": "https://github.com/laurence-myers/clone-comparison-nodejs",
   "license": "ISC",
+  "private": true,
   "engines": {
     "node": ">=8.9.4"
   },
