@@ -10,14 +10,15 @@ The ideal characteristics of a Node.js cloning library are as follows:
 - All properties in the original are available on the clone. This includes "length", "size", and methods.
 - Any data type can be passed in to the clone function, not just objects.
 - Mutation of the original value, or the cloned value, does not affect the other.
+- Prototype inheritance is preserved, including extending native types like Map.
 
 Note, that if speed is a priority, you can check out [some benchmarks](https://github.com/ahmadnassri/benchmark-node-clone) to find a fast library, and combine it with these tests to choose a library based on the minimum required functionality for your use case.
 
-## Spoiler alert
+## Results
 
-No library tested so far gets everything right.
+The test results are available online here:
 
-It looks like fast-deepclone could be a good base to work on. 
+[https://laurence-myers.github.io/clone-comparison-nodejs](https://laurence-myers.github.io/clone-comparison-nodejs)
 
 ## Libraries tested
 
@@ -49,10 +50,10 @@ It looks like fast-deepclone could be a good base to work on.
 - Add a new file to the test directory, named like `brand-spanking-new-clone-libTest`.
 - In that file, import `testCloneLibrary()` from `core.ts`, and invoke it with the name of the module.
 - Update the list of tested libraries in `README.md`.
+- Generate the new report file using `yarn run test-report`, commit it to Git, and submit a Pull Request.
 
 ## TODO
 
-- Generate test reports and publish them somewhere.
 - Test more data types:
   - Error
   - Function
@@ -61,5 +62,6 @@ It looks like fast-deepclone could be a good base to work on.
   - Symbol
   - WeakMap
   - WeakSet
-  - Data types implemented in Node.js native code extensions (like fs.Stats)
+  - Data types implemented in Node.js native code extensions (like maybe fs.Stats)
 - Test cloning Object, Number, and String instances, and make sure they do not get converted to primitives.
+- Test cloning all possible Number values, including negatives, inifinities, scientific notation, and NaNs.

@@ -12,6 +12,7 @@
     "tslint": "tslint --project tsconfig.json"
   },
   "author": "Laurence Dougal Myers",
+  "repository": "https://github.com/laurence-myers/clone-comparison-nodejs",
   "license": "ISC",
   "engines": {
     "node": ">=8.9.4"

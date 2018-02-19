@@ -98,7 +98,7 @@ class ComparisonReporter extends mocha.reporters.Base {
 
     onEnd() {
         const outDir = 'docs';
-        const outFile = 'report.html';
+        const outFile = 'index.html';
         const html = this.generateHtml();
         mkdirsSync(outDir);
         writeFileSync(path.join(outDir, outFile), html, 'utf-8');
