@@ -46,6 +46,14 @@ export interface FeatureComparison {
     libs : FeatureLib[];
 }
 
+export interface TestEnvironment {
+    nodeVersion : string;
+    osArchitecture : string;
+    osRelease : string;
+    osPlatform : NodeJS.Platform;
+    osType : string;
+}
+
 function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry[]) : FeatureComparison {
     const groups = new DefaultMap<string, FeatureGroup>((key) => ({
         name: key,
@@ -84,7 +92,7 @@ function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry
     };
 }
 
-export function comparisonReport(entries : ComparisonEntry[]) {
+export function comparisonReport(entries : ComparisonEntry[], testEnvironment : TestEnvironment) {
     if (entries.length === 0) {
         throw new Error(`Ehhh?! Nothing to report on!`);
     }
@@ -354,7 +362,7 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                 </table>
             </div>
         </div>
-    
+        
         <div id="section-test-results">
             ${ mmap(entries, (entry) => outdent`
                 <div id="lib-results-${ entry.libName }" class="lib-results hidden">
@@ -380,6 +388,10 @@ export function comparisonReport(entries : ComparisonEntry[]) {
                     </div>
                 </div>
             `) }
+        </div>
+        
+        <div id="test-environment">
+            <p>Tested on: ${ `Node.js ${ testEnvironment.nodeVersion } / ${ testEnvironment.osType } ${ testEnvironment.osRelease } (${ testEnvironment.osArchitecture }, ${ testEnvironment.osPlatform })` }</p>
         </div>
     </body>
 </html>`;

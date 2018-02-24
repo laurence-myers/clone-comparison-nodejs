@@ -7,6 +7,7 @@ import {last} from "./core";
 import {mkdirsSync} from "fs-extra";
 import {writeFileSync} from "fs";
 import * as path from "path";
+import * as os from "os";
 
 type TestRunner = Mocha.IRunner & EventEmitter;
 
@@ -107,7 +108,18 @@ class ComparisonReporter extends mocha.reporters.Base {
     }
 
     protected generateHtml() : string {
-        return comparisonReport(this.comparisonEntries);
+        const testEnvironment = this.getTestEnvironment();
+        return comparisonReport(this.comparisonEntries, testEnvironment);
+    }
+
+    protected getTestEnvironment() {
+        return {
+            nodeVersion: process.version,
+            osArchitecture: os.arch(),
+            osRelease: os.release(),
+            osPlatform: os.platform(),
+            osType: os.type()
+        };
     }
 }
 
