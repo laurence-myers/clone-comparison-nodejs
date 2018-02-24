@@ -5,8 +5,8 @@
   "scripts": {
     "build": "yarn run clean && yarn run tsc && yarn run tslint && yarn run test",
     "clean": "rimraf ./dist",
-    "test": "mocha -r source-map-support/register ./dist",
-    "test-report": "mocha -r source-map-support/register --reporter dist/src/comparisonReporter.js ./dist",
+    "test": "mocha -r source-map-support/register ./dist/test",
+    "test-report": "mocha -r source-map-support/register --reporter dist/src/comparisonReporter.js ./dist/test",
     "tsc": "tsc",
     "tscw": "tsc -w",
     "tslint": "tslint --project tsconfig.json"
