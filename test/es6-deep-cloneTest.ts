@@ -1,3 +1,3 @@
-import { testCloneLibrary } from "./core";
+// import { testCloneLibrary } from "./core";
 
-testCloneLibrary(`es6-deep-clone`);
+// testCloneLibrary(`es6-deep-clone`);

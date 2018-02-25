@@ -77,7 +77,7 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
     if (cloneLibraryOptions.cloner) {
         cloner = cloneLibraryOptions.cloner;
     } else {
-        const cloneLib = require('deep-clone');
+        const cloneLib = require(libraryName);
         cloner = <T>(obj : T) => cloneLib(obj);
     }
     const testSuiteOverrides : TestSuiteOverrides = cloneLibraryOptions.testSuiteOverrides || {};
