@@ -29,6 +29,7 @@ export interface ComparisonEntry {
     totalPassing : number;
     totalAttempted : number;
     suites : ComparisonSuite[];
+    suitesPassing : number;
 }
 
 interface FeatureGroup {
@@ -39,6 +40,7 @@ interface FeatureGroup {
 interface FeatureLib {
     name : string;
     featuresSupported : boolean[];
+    featureGroupsSupported : boolean[];
 }
 
 export interface FeatureComparison {
@@ -66,8 +68,10 @@ function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry
     for (const entry of entries) {
         const libName = entry.libName;
         const featuresSupported : boolean[] = [];
+        const featureGroupsSupported : boolean[] = [];
         for (const suite of entry.suites) {
             const group = groups.get(suite.description);
+            let allTestsPass = true;
             for (const test of suite.tests) {
                 const fullDescription = `${ suite.description } - ${ test.description }`;
                 if (group.features.indexOf(test.description) === -1) {
@@ -75,6 +79,10 @@ function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry
                     allFeatures.push(fullDescription);
                 }
                 featuresSupported[allFeatures.indexOf(fullDescription)] = test.pass;
+                allTestsPass = (allTestsPass && test.pass);
+            }
+            if (suite.tests.length > 0) {
+                featureGroupsSupported.push(allTestsPass);
             }
         }
         for (let i = 0; i < featuresSupported.length; i++) {
@@ -84,7 +92,8 @@ function convertLibraryComparisonsToFeatureComparisons(entries : ComparisonEntry
         }
         libs.push({
             name : libName,
-            featuresSupported
+            featuresSupported,
+            featureGroupsSupported
         });
     }
     return {
@@ -97,8 +106,8 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
     if (entries.length === 0) {
         throw new Error(`Ehhh?! Nothing to report on!`);
     }
-    const maxPassing = entries.reduce((prev, curr) => curr.totalPassing > prev ? curr.totalPassing : prev, 0);
-    const bestLibs = entries.filter((value) => value.totalPassing === maxPassing);
+    const maxPassing = entries.reduce((prev, curr) => curr.suitesPassing > prev ? curr.suitesPassing: prev, 0);
+    const bestLibs = entries.filter((value) => value.suitesPassing === maxPassing);
     const featureComparison = convertLibraryComparisonsToFeatureComparisons(entries);
 
     // language=HTML
@@ -227,11 +236,11 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
                 font-size: 0.8em;
             }
             
-            .feature-table .test-status.test-status-pass {
+            .feature-table .test-status.test-status-pass, .type-table .test-status.test-status-pass {
                 color: #1fcc1f;
             }
             
-            .feature-table .test-status.test-status-fail {
+            .feature-table .test-status.test-status-fail, .type-table .test-status.test-status-fail {
                 color: crimson;
             }
 
@@ -283,7 +292,7 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
                 }
             }
             
-            var sectionIds = ['section-feature-table', 'section-test-results'];
+            var sectionIds = ['section-type-table', 'section-feature-table', 'section-test-results'];
             function showSection(sectionIdToShow) {
                 for (var i = 0; i < sectionIds.length; i++) {
                     var section = document.getElementById(sectionIds[i]);
@@ -299,11 +308,14 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
                 toggleContents(libName);
                 showSection('section-test-results');
             }
+
         </script>
     </head>
     <body>
         <div id="section-navigator-container">
             <span id="section-navigator">
+                <a href="#section-feature-table" onclick="showSection('section-type-table')">Types Table</a>
+                <span>|</span>
                 <a href="#section-feature-table" onclick="showSection('section-feature-table')">Feature Table</a>
                 <span>|</span>
                 <a href="#section-test-results"  onclick="showSection('section-test-results')">Test Results</a>
@@ -315,23 +327,48 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
                 <thead>
                     <tr>
                         <th>Package</th>
-                        <th>Passing</th>
-                        <th>Attempted</th>
+                        <th>Types Supported</th>
+                        <th>Tests Passing</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${ mmap(entries, (entry) => outdent`
                         <tr class="${ bestLibs.indexOf(entry) > -1 ? 'best-lib' : '' }" onclick="showTestResults('${ entry.libName }')">
                             <td>${ he.encode(entry.libName) }</td>
-                            <td>${ entry.totalPassing }</td>
-                            <td>${ entry.totalAttempted }</td>
+                            <td>${ entry.suitesPassing }</td>
+                            <td>${ entry.totalPassing } / ${ entry.totalAttempted }</td>
                         </tr>
                     `) }
                 </tbody>
             </table>
         </div>
-    
-        <div id="section-feature-table">
+        
+        <div id="section-type-table">
+            <div style="margin-top: 1em;">
+                <table class="table type-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            ${ mmap(featureComparison.featureGroups, (featureGroup) => featureGroup.features.length ? outdent`
+                            <th style="text-align: left; border-left: 1px solid #DDD;">${ he.encode(featureGroup.name) }</th>
+                            ` : '') }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ mmap(featureComparison.libs, (lib) => outdent`
+                        <tr>
+                            <td>${ he.encode(lib.name) }</td>
+                            ${ mmap(lib.featureGroupsSupported, (pass) => outdent`
+                                <td class="test-status ${ pass ? 'test-status-pass' : 'test-status-fail' }">${ he.encode(pass ? '✔' : '✘') }</td>
+                            `) }
+                        </tr>
+                        `) }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="section-feature-table" class="hidden">
             <div style="margin-top: 1em;">
                 <table class="table feature-table">
                     <thead>
@@ -357,16 +394,16 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
                             ${ mmap(lib.featuresSupported, (pass) => outdent`
                                 <td class="test-status ${ pass ? 'test-status-pass' : 'test-status-fail' }">${ he.encode(pass ? '✔' : '✘') }</td>
                             `) }
-                        </tr>                        
+                        </tr>
                         `) }
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <div id="section-test-results">
-            ${ mmap(entries, (entry) => outdent`
-                <div id="lib-results-${ entry.libName }" class="lib-results hidden">
+        <div id="section-test-results" class="hidden">
+            ${ mmap(entries, (entry, index) => outdent`
+                <div id="lib-results-${ entry.libName }" class="lib-results ${ index === 0 ? '' : 'hidden' }">
                     <h1 class="lib-name">${ he.encode(entry.libName) }: ${ entry.totalPassing } / ${ entry.totalAttempted }</h1>
                     <div class="lib-suite">
                     <table class="table lib-suite-results-table">

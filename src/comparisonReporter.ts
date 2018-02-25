@@ -22,7 +22,8 @@ class ComparisonReporter extends mocha.reporters.Base {
         libName: '',
         suites: [],
         totalAttempted: 0,
-        totalPassing: 0
+        totalPassing: 0,
+        suitesPassing: 0
     };
 
     constructor(runner : TestRunner) {
@@ -47,6 +48,7 @@ class ComparisonReporter extends mocha.reporters.Base {
             this.currentComparisonEntry = {
                 libName: suite.title,
                 suites: [],
+                suitesPassing: 0,
                 totalAttempted: 0,
                 totalPassing: 0
             };
@@ -65,6 +67,10 @@ class ComparisonReporter extends mocha.reporters.Base {
             console.log(`${ suite.fullTitle() } results: ${ this.passes }/${ this.passes + this.failures }`);
             this.currentComparisonEntry.totalPassing = this.passes;
             this.currentComparisonEntry.totalAttempted = this.passes + this.failures;
+            this.currentComparisonEntry.suitesPassing =
+                this.currentComparisonEntry.suites
+                    .filter((suite) => suite.allPassing && suite.tests.length > 0)
+                    .length;
             this.passes = 0;
             this.failures = 0;
             this.comparisonEntries.push(this.currentComparisonEntry);
