@@ -1,4 +1,8 @@
+import "../typings/@yarnpkg/lockfile";
+import * as appRootPath from 'app-root-path';
 import * as assert from 'assert';
+import * as lockfile from '@yarnpkg/lockfile';
+import {readFileSync} from "fs";
 
 export type Cloner = <T>(obj : T) => T;
 
@@ -48,6 +52,26 @@ export interface CloneLibraryOptions {
     testSuiteOverrides? : TestSuiteOverrides;
 }
 
+export function parseLibraryVersions() {
+    let unparsedLockfile = readFileSync(appRootPath.resolve('yarn.lock'), 'utf8');
+    // work around a bug in @yarnpkg/lockfile@1.0.0, it can't read Windows CRLF line endings.
+    unparsedLockfile = unparsedLockfile.replace(/\r/g, '');
+    const parsedLockfile = lockfile.parse(unparsedLockfile);
+    const libVersionMap = new Map<string, string>();
+    if (parsedLockfile.type === 'success') {
+        for (const key of Object.keys(parsedLockfile.object)) {
+            const libName = key.substring(0, key.indexOf('@'));
+            const value = parsedLockfile.object[key].version;
+            libVersionMap.set(libName, value);
+        }
+    } else {
+        throw new Error('Unable to parse yarn.lock');
+    }
+    return libVersionMap;
+}
+
+const libVersionMap : Map<string, string> = parseLibraryVersions();
+
 export function testCloneLibrary(libraryName : string, cloneLibraryOptions : CloneLibraryOptions = {}) {
     let cloner : Cloner;
     if (cloneLibraryOptions.cloner) {
@@ -57,6 +81,11 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
         cloner = <T>(obj : T) => cloneLib(obj);
     }
     const testSuiteOverrides : TestSuiteOverrides = cloneLibraryOptions.testSuiteOverrides || {};
+    const libraryVersion = libVersionMap.get(libraryName) || '';
+    if (libraryVersion) {
+        libraryName = `${ libraryName } v${ libraryVersion}`;
+    }
+
     describe(libraryName, function () {
 
         describe(`Array`, function () {

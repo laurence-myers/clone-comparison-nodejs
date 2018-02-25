@@ -21,6 +21,8 @@
   "dependencies": {
     "@types/mocha": "2.2.48",
     "@types/node": "9.4.6",
+    "@yarnpkg/lockfile": "1.0.0",
+    "app-root-path": "2.0.1",
     "clone": "2.1.1",
     "clone-deep": "2.0.1",
     "clone-extend": "0.1.2",
@@ -44,6 +46,7 @@
     "utils-copy": "1.1.1"
   },
   "devDependencies": {
+    "@types/app-root-path": "1.2.4",
     "@types/fs-extra": "5.0.0",
     "@types/he": "0.5.29",
     "rimraf": "2.6.2",
