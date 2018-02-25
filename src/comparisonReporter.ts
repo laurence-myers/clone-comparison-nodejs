@@ -114,6 +114,7 @@ class ComparisonReporter extends mocha.reporters.Base {
 
     protected getTestEnvironment() {
         return {
+            runDate: new Date(),
             nodeVersion: process.version,
             osArchitecture: os.arch(),
             osRelease: os.release(),

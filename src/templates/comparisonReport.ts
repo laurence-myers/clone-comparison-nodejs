@@ -47,6 +47,7 @@ export interface FeatureComparison {
 }
 
 export interface TestEnvironment {
+    runDate : Date;
     nodeVersion : string;
     osArchitecture : string;
     osRelease : string;
@@ -392,6 +393,7 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
         
         <div id="test-environment">
             <p>Tested on: ${ `Node.js ${ testEnvironment.nodeVersion } / ${ testEnvironment.osType } ${ testEnvironment.osRelease } (${ testEnvironment.osArchitecture }, ${ testEnvironment.osPlatform })` }</p>
+            <p>Tested at: ${ testEnvironment.runDate.toISOString() }</p>
         </div>
     </body>
 </html>`;
