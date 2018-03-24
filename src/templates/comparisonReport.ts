@@ -106,7 +106,7 @@ export function comparisonReport(entries : ComparisonEntry[], testEnvironment : 
     if (entries.length === 0) {
         throw new Error(`Ehhh?! Nothing to report on!`);
     }
-    const maxPassing = entries.reduce((prev, curr) => curr.suitesPassing > prev ? curr.suitesPassing: prev, 0);
+    const maxPassing = entries.reduce((prev, curr) => curr.suitesPassing > prev ? curr.suitesPassing : prev, 0);
     const bestLibs = entries.filter((value) => value.suitesPassing === maxPassing);
     const featureComparison = convertLibraryComparisonsToFeatureComparisons(entries);
 
