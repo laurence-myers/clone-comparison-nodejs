@@ -24,21 +24,29 @@ function testPropertiesThatShouldNotExist<T>(typeName : string, value : T, prope
     }
 }
 
-function testGenericClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>) : T {
+function testGenericClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>, shouldProduceNewReference : boolean = true) : T {
     const clonedValue = cloner(valueToClone);
-    assert.notStrictEqual(clonedValue, valueToClone, `The cloned ${ typeName } should not reference the same object in memory`);
+    if (shouldProduceNewReference) {
+        assert.notStrictEqual(clonedValue, valueToClone, `The cloned ${ typeName } should not reference the same object in memory`);
+    } else {
+        assert.strictEqual(clonedValue, valueToClone, `The cloned ${ typeName } should reference the same object in memory`);
+    }
     testPropertiesThatShouldExist(typeName, clonedValue, propertiesThatShouldExist);
     return clonedValue;
 }
 
-function testGenericPropertyClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>) : T {
+function testGenericPropertyClone<T>(cloner : Cloner, typeName : string, valueToClone : T, propertiesThatShouldExist : Array<keyof T>, shouldProduceNewReference : boolean = true) : T {
     const obj = wrapInObject(valueToClone);
 
     const clonedObjectValue = cloner(obj);
     assert.notStrictEqual(obj, clonedObjectValue, `The cloned object should not reference the same object in memory`);
     assert.notStrictEqual(clonedObjectValue.myProperty, undefined, `The cloned object should have a property called "myProperty"`);
     const clonedPropertyValue = clonedObjectValue.myProperty;
-    assert.notStrictEqual(valueToClone, clonedPropertyValue, `The cloned ${ typeName } should not reference the same object in memory`);
+    if (shouldProduceNewReference) {
+        assert.notStrictEqual(valueToClone, clonedPropertyValue, `The cloned ${ typeName } should not reference the same object in memory`);
+    } else {
+        assert.strictEqual(valueToClone, clonedPropertyValue, `The cloned ${ typeName } should reference the same object in memory`);
+    }
     testPropertiesThatShouldExist(typeName, clonedPropertyValue, propertiesThatShouldExist);
     return clonedPropertyValue;
 }
@@ -272,6 +280,47 @@ export function testCloneLibrary(libraryName : string, cloneLibraryOptions : Clo
                 assert.ok(overridingMethodWasCalled, `The overriding method on DefaultMap should be called`);
                 assert.strictEqual(value, defaultValue, `The cloned Map should be a DefaultMap, and should return the default value when given a non-existent key`);
                 assert.notStrictEqual(obj.myProperty.size, copiedObj.myProperty.size, `After implicitly inserting an element, the cloned Map should have a different size to the original Map`);
+            });
+        });
+
+        describe(`Number`, function () {
+            const typeName = `Number`;
+            const expectedProperties : Array<keyof Number> = [
+                "toExponential",
+                "toPrecision"
+            ];
+            const primitiveValueToClone = 123;
+
+            it(`can deep copy a Number`, function () {
+                testGenericClone<Number>(cloner, typeName, primitiveValueToClone, expectedProperties, false);
+            });
+
+            it(`can deep copy a Number contain in an object property`, function () {
+                testGenericPropertyClone<Number>(cloner, typeName, primitiveValueToClone, expectedProperties, false);
+            });
+
+            it(`can deep copy a Number object instance`, function () {
+                // noinspection JSPrimitiveTypeWrapperUsage
+                const instanceValueToClone = new Number(123);
+                const result = testGenericPropertyClone<Number>(cloner, typeName, instanceValueToClone, expectedProperties, true);
+                assert.ok(instanceValueToClone instanceof Number, `A Number instance should inherit from Number`);
+                assert.ok(result instanceof Number, `A cloned Number instance should inherit from Number`);
+            });
+
+            it(`can deep copy infinity values`, function () {
+                let ininitifyValue = Number.POSITIVE_INFINITY;
+                testGenericPropertyClone<Number>(cloner, typeName, ininitifyValue, expectedProperties, false);
+                ininitifyValue = Number.NEGATIVE_INFINITY;
+                testGenericPropertyClone<Number>(cloner, typeName, ininitifyValue, expectedProperties, false);
+            });
+
+            it(`can deep copy NaN`, function () {
+                const nanValue = Number.NaN;
+                const obj = wrapInObject(nanValue);
+                const clonedObjectValue = cloner(obj);
+                const clonedPropertyValue = clonedObjectValue.myProperty;
+                assert.ok(isNaN(clonedPropertyValue), `A cloned NaN must be a NaN`);
+                assert.notStrictEqual(clonedPropertyValue, nanValue, `Two NaN values should not be the same`);
             });
         });
 
